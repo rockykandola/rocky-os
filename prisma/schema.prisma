@@ -1,0 +1,513 @@
+// Rocky OS — Prisma schema
+// learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Core identity
+// ---------------------------------------------------------------------------
+
+/// Mirrors a Supabase `auth.users` row. `id` is the Supabase auth user id.
+model User {
+  id        String   @id @db.Uuid
+  email     String   @unique
+  fullName  String?
+  avatarUrl String?
+  timezone  String   @default("UTC")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects      Project[]
+  milestones    Milestone[]
+  tasks         Task[]
+  notes         Note[]
+  files         FileAsset[]
+  journalEntries JournalEntry[]
+  habits        Habit[]
+  habitLogs     HabitLog[]
+  healthMetrics HealthMetric[]
+  contacts      Contact[]
+  interactions  Interaction[]
+  brainDumpItems BrainDumpItem[]
+  dailyPlans    DailyPlan[]
+  notifications Notification[]
+  googleConnections GoogleAccountConnection[]
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum LifeArea {
+  BUSINESS
+  HEALTH
+  FAMILY
+  FINANCE
+  PERSONAL_GROWTH
+  RELATIONSHIPS
+  HOME
+  OTHER
+
+  @@map("life_area")
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+
+  @@map("project_status")
+}
+
+enum MilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  DONE
+
+  @@map("milestone_status")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  CANCELED
+
+  @@map("task_status")
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@map("task_priority")
+}
+
+/// Polymorphic attachment target for Note / FileAsset.
+enum EntityType {
+  PROJECT
+  MILESTONE
+  TASK
+  CONTACT
+  JOURNAL_ENTRY
+  DAILY_PLAN
+  NONE
+
+  @@map("entity_type")
+}
+
+enum BrainDumpStatus {
+  PENDING
+  CATEGORIZED
+  CONVERTED
+  DISMISSED
+
+  @@map("brain_dump_status")
+}
+
+enum BrainDumpSuggestedType {
+  TASK
+  PROJECT
+  NOTE
+  EVENT
+  CONTACT
+  JOURNAL
+  UNSURE
+
+  @@map("brain_dump_suggested_type")
+}
+
+enum DailyPlanKind {
+  MORNING
+  EVENING
+
+  @@map("daily_plan_kind")
+}
+
+enum ContactRelationship {
+  FAMILY
+  FRIEND
+  COLLEAGUE
+  CLIENT
+  PARTNER
+  ACQUAINTANCE
+  OTHER
+
+  @@map("contact_relationship")
+}
+
+enum InteractionType {
+  CALL
+  MEETING
+  MESSAGE
+  EMAIL
+  EVENT
+  NOTE
+
+  @@map("interaction_type")
+}
+
+enum HealthMetricType {
+  WEIGHT
+  SLEEP_HOURS
+  STEPS
+  RESTING_HEART_RATE
+  WATER_INTAKE_OZ
+  WORKOUT_MINUTES
+  MOOD
+  OTHER
+
+  @@map("health_metric_type")
+}
+
+enum HabitFrequency {
+  DAILY
+  WEEKLY
+  CUSTOM
+
+  @@map("habit_frequency")
+}
+
+enum NotificationType {
+  TASK_DUE
+  TASK_OVERDUE
+  MILESTONE_DUE
+  DAILY_PLAN_REMINDER
+  HABIT_REMINDER
+  SYSTEM
+
+  @@map("notification_type")
+}
+
+// ---------------------------------------------------------------------------
+// Projects, milestones, tasks
+// ---------------------------------------------------------------------------
+
+model Project {
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String        @db.Uuid
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  area        LifeArea      @default(OTHER)
+  status      ProjectStatus @default(ACTIVE)
+  color       String?
+  targetDate  DateTime?
+  archivedAt  DateTime?
+  /// Set when this project was imported from an external system (e.g. "google_tasks").
+  externalSource String?
+  /// The external system's id for this list, used to make re-imports idempotent.
+  externalId     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  milestones Milestone[]
+  tasks      Task[]
+
+  @@unique([userId, externalSource, externalId])
+  @@index([userId, status])
+  @@map("projects")
+}
+
+model Milestone {
+  id        String          @id @default(uuid()) @db.Uuid
+  userId    String          @db.Uuid
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String          @db.Uuid
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title     String
+  status    MilestoneStatus @default(NOT_STARTED)
+  dueDate   DateTime?
+  sortOrder Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  tasks Task[]
+
+  @@index([projectId])
+  @@map("milestones")
+}
+
+model Task {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @db.Uuid
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId   String?      @db.Uuid
+  project     Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  milestoneId String?      @db.Uuid
+  milestone   Milestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  /// Self-relation for one level of subtasks, mirroring Google Tasks' parent/child model.
+  parentTaskId String?     @db.Uuid
+  parent      Task?        @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks    Task[]       @relation("TaskSubtasks")
+  title       String
+  notes       String?
+  /// Free-text delegate, e.g. a staff member's name — not a full team account.
+  assignee    String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  completedAt DateTime?
+  isTopThree  Boolean      @default(false)
+  topThreeDate DateTime?
+  sortOrder   Int          @default(0)
+  /// Set when this task was imported from an external system (e.g. "google_tasks").
+  externalSource String?
+  /// The external system's id for this task, used to make re-imports idempotent.
+  externalId     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([userId, externalSource, externalId])
+  @@index([userId, status, dueDate])
+  @@index([userId, isTopThree, topThreeDate])
+  @@index([projectId])
+  @@index([parentTaskId])
+  @@map("tasks")
+}
+
+// ---------------------------------------------------------------------------
+// Notes & files (polymorphic attachments)
+// ---------------------------------------------------------------------------
+
+model Note {
+  id         String     @id @default(uuid()) @db.Uuid
+  userId     String     @db.Uuid
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType EntityType @default(NONE)
+  entityId   String?    @db.Uuid
+  title      String?
+  body       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@index([userId, entityType, entityId])
+  @@map("notes")
+}
+
+model FileAsset {
+  id         String     @id @default(uuid()) @db.Uuid
+  userId     String     @db.Uuid
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType EntityType @default(NONE)
+  entityId   String?    @db.Uuid
+  fileName   String
+  storagePath String
+  mimeType   String?
+  sizeBytes  Int?
+  createdAt  DateTime   @default(now())
+
+  @@index([userId, entityType, entityId])
+  @@map("file_assets")
+}
+
+// ---------------------------------------------------------------------------
+// Journal, habits, health
+// ---------------------------------------------------------------------------
+
+model JournalEntry {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entryDate DateTime @db.Date
+  title     String?
+  body      String
+  mood      Int?
+  aiSummary String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, entryDate])
+  @@map("journal_entries")
+}
+
+model Habit {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @db.Uuid
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  area      LifeArea       @default(HEALTH)
+  frequency HabitFrequency @default(DAILY)
+  targetPerPeriod Int      @default(1)
+  color     String?
+  archivedAt DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  logs HabitLog[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+model HabitLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId   String   @db.Uuid
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  logDate   DateTime @db.Date
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, logDate])
+  @@index([userId, logDate])
+  @@map("habit_logs")
+}
+
+model HealthMetric {
+  id         String           @id @default(uuid()) @db.Uuid
+  userId     String           @db.Uuid
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       HealthMetricType
+  value      Float
+  unit       String?
+  recordedAt DateTime         @default(now())
+  note       String?
+
+  @@index([userId, type, recordedAt])
+  @@map("health_metrics")
+}
+
+// ---------------------------------------------------------------------------
+// Contacts CRM
+// ---------------------------------------------------------------------------
+
+model Contact {
+  id           String              @id @default(uuid()) @db.Uuid
+  userId       String              @db.Uuid
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName     String
+  relationship ContactRelationship @default(OTHER)
+  email        String?
+  phone        String?
+  birthday     DateTime?           @db.Date
+  company      String?
+  tags         String[]            @default([])
+  notes        String?
+  lastContactedAt DateTime?
+  nextFollowUpAt  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  interactions Interaction[]
+
+  @@index([userId, relationship])
+  @@map("contacts")
+}
+
+model Interaction {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contactId String           @db.Uuid
+  contact   Contact          @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  type      InteractionType
+  summary   String
+  occurredAt DateTime        @default(now())
+  createdAt DateTime         @default(now())
+
+  @@index([contactId, occurredAt])
+  @@map("interactions")
+}
+
+// ---------------------------------------------------------------------------
+// Brain dump
+// ---------------------------------------------------------------------------
+
+model BrainDumpItem {
+  id             String                  @id @default(uuid()) @db.Uuid
+  userId         String                  @db.Uuid
+  user           User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rawText        String
+  status         BrainDumpStatus         @default(PENDING)
+  suggestedType  BrainDumpSuggestedType?
+  suggestedTitle String?
+  aiRationale    String?
+  convertedEntityType EntityType?
+  convertedEntityId   String?            @db.Uuid
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  @@index([userId, status])
+  @@map("brain_dump_items")
+}
+
+// ---------------------------------------------------------------------------
+// Daily planner
+// ---------------------------------------------------------------------------
+
+model DailyPlan {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @db.Uuid
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planDate     DateTime      @db.Date
+  kind         DailyPlanKind
+  intentions   String?
+  aiSummary    String?
+  gratitude    String?
+  wins         String?
+  challenges   String?
+  taskIds      String[]      @default([])
+  completedAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([userId, planDate, kind])
+  @@map("daily_plans")
+}
+
+// ---------------------------------------------------------------------------
+// Notifications
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id        String            @id @default(uuid()) @db.Uuid
+  userId    String            @db.Uuid
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  entityType EntityType       @default(NONE)
+  entityId   String?          @db.Uuid
+  readAt    DateTime?
+  createdAt DateTime          @default(now())
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+// ---------------------------------------------------------------------------
+// External integrations
+// ---------------------------------------------------------------------------
+
+/// A connected Google account (you can connect several — one per business inbox).
+model GoogleAccountConnection {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// The connected Google account's email — used as the display label.
+  email        String
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  scopes       String[]  @default([])
+  lastImportedAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, email])
+  @@map("google_account_connections")
+}
