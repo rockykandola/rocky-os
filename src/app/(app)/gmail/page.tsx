@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Mail, ExternalLink } from "lucide-react";
+import { Mail, ExternalLink, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { requireUser } from "@/lib/auth";
 import { getGoogleConnections } from "@/server/data/integrations";
+import { getEmailDrafts } from "@/server/data/email-drafts";
 import { db } from "@/lib/db";
 import { getValidAccessToken } from "@/lib/google/tokens";
 import { listRecentMessages } from "@/lib/google/gmail-client";
+import { DraftReplyButton } from "@/components/gmail/draft-reply-button";
 
 export default async function GmailPage({
   searchParams,
@@ -43,6 +45,7 @@ export default async function GmailPage({
 
   const activeConnectionId = account ?? connections[0].id;
   const activeConnection = connections.find((c) => c.id === activeConnectionId) ?? connections[0];
+  const draftCount = (await getEmailDrafts(user.id)).length;
 
   let messages: Awaited<ReturnType<typeof listRecentMessages>> = [];
   let error: string | null = null;
@@ -58,9 +61,18 @@ export default async function GmailPage({
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
-        <p className="text-sm text-muted-foreground">A quick glance across all your inboxes.</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Gmail</h1>
+          <p className="text-sm text-muted-foreground">A quick glance across all your inboxes.</p>
+        </div>
+        <Link
+          href="/gmail/drafts"
+          className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          <FileText className="h-4 w-4" />
+          Drafts {draftCount > 0 && `(${draftCount})`}
+        </Link>
       </div>
 
       <div className="flex flex-wrap gap-1.5">
@@ -89,14 +101,13 @@ export default async function GmailPage({
           ) : (
             <div className="flex flex-col divide-y">
               {messages.map((m) => (
-                <a
-                  key={m.id}
-                  href={`https://mail.google.com/mail/?authuser=${encodeURIComponent(activeConnection.email)}#all/${m.threadId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start justify-between gap-3 py-3 hover:bg-muted/60"
-                >
-                  <div className="min-w-0 flex-1">
+                <div key={m.id} className="flex items-start justify-between gap-3 py-3 hover:bg-muted/60">
+                  <a
+                    href={`https://mail.google.com/mail/?authuser=${encodeURIComponent(activeConnection.email)}#all/${m.threadId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-w-0 flex-1"
+                  >
                     <div className="flex items-center gap-2">
                       {m.unread && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />}
                       <span className={cn("truncate text-sm", m.unread ? "font-semibold" : "font-medium")}>
@@ -105,12 +116,15 @@ export default async function GmailPage({
                     </div>
                     <p className="truncate text-xs text-muted-foreground">{m.from}</p>
                     <p className="truncate text-xs text-muted-foreground">{m.snippet}</p>
+                  </a>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      {m.date && formatDistanceToNow(new Date(m.date), { addSuffix: true })}
+                      <ExternalLink className="h-3 w-3" />
+                    </span>
+                    <DraftReplyButton connectionId={activeConnection.id} messageId={m.id} />
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-                    {m.date && formatDistanceToNow(new Date(m.date), { addSuffix: true })}
-                    <ExternalLink className="h-3 w-3" />
-                  </div>
-                </a>
+                </div>
               ))}
             </div>
           )}

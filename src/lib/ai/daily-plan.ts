@@ -6,21 +6,25 @@ export async function generateMorningSummary(input: {
   intentions: string | null;
   taskTitles: string[];
 }): Promise<string> {
-  if (!aiEnabled) {
-    return input.taskTitles.length > 0
-      ? `Today's focus: ${input.taskTitles.slice(0, 3).join(", ")}. Set OPENAI_API_KEY for an AI-generated plan.`
-      : "No tasks selected yet. Set OPENAI_API_KEY for an AI-generated plan.";
-  }
+  const fallback = input.taskTitles.length > 0
+    ? `Today's focus: ${input.taskTitles.slice(0, 3).join(", ")}.`
+    : "No tasks selected yet.";
 
-  const { text } = await generateText({
-    model: chatModel,
-    system:
-      "You are a concise, encouraging personal coach inside Rocky OS. Write a short (2-3 sentence) morning plan summary that helps the user focus. No preamble, no markdown headers.",
-    prompt: `Intentions for today: ${input.intentions || "none stated"}.\nPlanned tasks: ${
-      input.taskTitles.length ? input.taskTitles.join(", ") : "none selected"
-    }.`,
-  });
-  return text.trim();
+  if (!aiEnabled) return `${fallback} Set OPENAI_API_KEY for an AI-generated plan.`;
+
+  try {
+    const { text } = await generateText({
+      model: chatModel,
+      system:
+        "You are a concise, encouraging personal coach inside Rocky OS. Write a short (2-3 sentence) morning plan summary that helps the user focus. No preamble, no markdown headers.",
+      prompt: `Intentions for today: ${input.intentions || "none stated"}.\nPlanned tasks: ${
+        input.taskTitles.length ? input.taskTitles.join(", ") : "none selected"
+      }.`,
+    });
+    return text.trim();
+  } catch {
+    return fallback;
+  }
 }
 
 export async function generateEveningSummary(input: {
@@ -28,17 +32,20 @@ export async function generateEveningSummary(input: {
   challenges: string | null;
   gratitude: string | null;
 }): Promise<string> {
-  if (!aiEnabled) {
-    return "Nice work wrapping up the day. Set OPENAI_API_KEY for an AI-generated reflection.";
-  }
+  const fallback = "Nice work wrapping up the day.";
+  if (!aiEnabled) return `${fallback} Set OPENAI_API_KEY for an AI-generated reflection.`;
 
-  const { text } = await generateText({
-    model: chatModel,
-    system:
-      "You are a warm, reflective personal coach inside Rocky OS. Write a short (2-3 sentence) evening reflection that acknowledges the day and offers one gentle suggestion for tomorrow. No preamble, no markdown headers.",
-    prompt: `Wins: ${input.wins || "none noted"}.\nChallenges: ${input.challenges || "none noted"}.\nGratitude: ${
-      input.gratitude || "none noted"
-    }.`,
-  });
-  return text.trim();
+  try {
+    const { text } = await generateText({
+      model: chatModel,
+      system:
+        "You are a warm, reflective personal coach inside Rocky OS. Write a short (2-3 sentence) evening reflection that acknowledges the day and offers one gentle suggestion for tomorrow. No preamble, no markdown headers.",
+      prompt: `Wins: ${input.wins || "none noted"}.\nChallenges: ${input.challenges || "none noted"}.\nGratitude: ${
+        input.gratitude || "none noted"
+      }.`,
+    });
+    return text.trim();
+  } catch {
+    return fallback;
+  }
 }

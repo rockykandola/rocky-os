@@ -64,3 +64,72 @@ export async function listRecentMessages(
 
   return messages;
 }
+
+type GmailPart = {
+  mimeType?: string;
+  body?: { data?: string };
+  parts?: GmailPart[];
+};
+
+function decodeBase64Url(data: string): string {
+  return Buffer.from(data.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf-8");
+}
+
+const HTML_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&#39;": "'",
+  "&apos;": "'",
+  "&quot;": '"',
+  "&lt;": "<",
+  "&gt;": ">",
+  "&nbsp;": " ",
+};
+
+function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&amp;|&#39;|&apos;|&quot;|&lt;|&gt;|&nbsp;/g, (m) => HTML_ENTITIES[m])
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+}
+
+function findPlainTextBody(part: GmailPart | undefined): string | null {
+  if (!part) return null;
+  if (part.mimeType === "text/plain" && part.body?.data) {
+    return decodeBase64Url(part.body.data);
+  }
+  for (const child of part.parts ?? []) {
+    const found = findPlainTextBody(child);
+    if (found) return found;
+  }
+  return null;
+}
+
+export type GmailMessageDetail = {
+  id: string;
+  threadId: string;
+  subject: string;
+  from: string;
+  body: string;
+};
+
+/** Fetches a message's plain-text body (falls back to the snippet if no text/plain part exists). */
+export async function getMessageDetail(accessToken: string, messageId: string): Promise<GmailMessageDetail> {
+  const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}`);
+  url.searchParams.set("format", "full");
+
+  const detail = await googleFetch<{
+    id: string;
+    threadId: string;
+    snippet: string;
+    payload?: GmailPart & { headers?: { name: string; value: string }[] };
+  }>(url.toString(), accessToken);
+
+  const body = decodeHtmlEntities(findPlainTextBody(detail.payload) ?? detail.snippet);
+
+  return {
+    id: detail.id,
+    threadId: detail.threadId,
+    subject: headerValue(detail.payload?.headers, "Subject") || "(no subject)",
+    from: headerValue(detail.payload?.headers, "From"),
+    body: body.trim(),
+  };
+}

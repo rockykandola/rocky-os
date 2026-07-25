@@ -39,6 +39,7 @@ model User {
   dailyPlans    DailyPlan[]
   notifications Notification[]
   googleConnections GoogleAccountConnection[]
+  emailDrafts   EmailDraft[]
 
   @@map("users")
 }
@@ -508,6 +509,28 @@ model GoogleAccountConnection {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  emailDrafts EmailDraft[]
+
   @@unique([userId, email])
   @@map("google_account_connections")
+}
+
+/// An AI-drafted reply to a Gmail message, kept inside Rocky OS (not written to Gmail).
+model EmailDraft {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connectionId   String   @db.Uuid
+  connection     GoogleAccountConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  gmailMessageId String
+  gmailThreadId  String
+  subject        String
+  fromAddress    String
+  originalBody   String
+  draftBody      String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, gmailMessageId])
+  @@map("email_drafts")
 }
