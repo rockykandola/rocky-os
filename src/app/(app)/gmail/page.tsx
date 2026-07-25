@@ -11,6 +11,8 @@ import { db } from "@/lib/db";
 import { getValidAccessToken } from "@/lib/google/tokens";
 import { listRecentMessages } from "@/lib/google/gmail-client";
 import { DraftReplyButton } from "@/components/gmail/draft-reply-button";
+import { VoiceNotesEditor } from "@/components/gmail/voice-notes-editor";
+import { updateVoiceNotes } from "@/server/actions/email-drafts";
 
 export default async function GmailPage({
   searchParams,
@@ -74,6 +76,8 @@ export default async function GmailPage({
           Drafts {draftCount > 0 && `(${draftCount})`}
         </Link>
       </div>
+
+      <VoiceNotesEditor initialNotes={user.voiceNotes} onSave={updateVoiceNotes} />
 
       <div className="flex flex-wrap gap-1.5">
         {connections.map((c) => (

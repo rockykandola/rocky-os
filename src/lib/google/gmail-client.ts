@@ -133,3 +133,65 @@ export async function getMessageDetail(accessToken: string, messageId: string): 
     body: body.trim(),
   };
 }
+
+/** Cuts a plain-text email body off at the start of a quoted reply chain, if any. */
+export function stripQuotedReply(text: string): string {
+  const markers = [
+    /\r?\n\s*On .{0,150} wrote:\s*\r?\n/i,
+    /\r?\n-{2,}\s?Original Message\s?-{2,}/i,
+    /\r?\nFrom:.{0,150}\r?\nSent:/i,
+    /\r?\n>[\s\S]*$/,
+  ];
+  let cut = text.length;
+  for (const marker of markers) {
+    const match = text.match(marker);
+    if (match?.index !== undefined && match.index < cut) cut = match.index;
+  }
+  return text.slice(0, cut).trim();
+}
+
+export type ThreadMessage = {
+  id: string;
+  from: string;
+  date: string;
+  body: string;
+};
+
+/** Fetches every message in a thread, in order — used to give a draft the full conversation. */
+export async function getThreadMessages(accessToken: string, threadId: string): Promise<ThreadMessage[]> {
+  const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/threads/${threadId}`);
+  url.searchParams.set("format", "full");
+
+  const thread = await googleFetch<{
+    messages?: { id: string; payload?: GmailPart & { headers?: { name: string; value: string }[] } }[];
+  }>(url.toString(), accessToken);
+
+  return (thread.messages ?? []).map((m) => ({
+    id: m.id,
+    from: headerValue(m.payload?.headers, "From"),
+    date: headerValue(m.payload?.headers, "Date"),
+    body: decodeHtmlEntities(findPlainTextBody(m.payload) ?? "").trim(),
+  }));
+}
+
+/** Pulls a handful of recently sent messages to use as writing-style reference. */
+export async function listSentSamples(accessToken: string, maxResults = 5): Promise<string[]> {
+  const listUrl = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");
+  listUrl.searchParams.set("maxResults", String(maxResults));
+  listUrl.searchParams.set("q", "in:sent");
+
+  const list = await googleFetch<{ messages?: { id: string }[] }>(listUrl.toString(), accessToken);
+  if (!list.messages?.length) return [];
+
+  const bodies = await Promise.all(
+    list.messages.map(async (m) => {
+      const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}`);
+      url.searchParams.set("format", "full");
+      const detail = await googleFetch<{ payload?: GmailPart }>(url.toString(), accessToken);
+      const body = decodeHtmlEntities(findPlainTextBody(detail.payload) ?? "").trim();
+      return stripQuotedReply(body);
+    }),
+  );
+
+  return bodies.filter((b) => b.length > 15 && b.length < 3000);
+}

@@ -21,6 +21,8 @@ model User {
   fullName  String?
   avatarUrl String?
   timezone  String   @default("UTC")
+  /// Free-text notes on tone/voice, fed into AI email-draft prompts.
+  voiceNotes String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
