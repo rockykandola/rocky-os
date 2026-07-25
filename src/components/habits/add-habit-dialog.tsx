@@ -6,7 +6,6 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -24,13 +23,12 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { AREA_LABEL, AREA_OPTIONS } from "@/lib/area-format";
-import { createProject } from "@/server/actions/projects";
+import { createHabit } from "@/server/actions/habits";
 
-export function ProjectFormDialog() {
+export function AddHabitDialog() {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [area, setArea] = useState("OTHER");
+  const [area, setArea] = useState("HEALTH");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -38,10 +36,8 @@ export function ProjectFormDialog() {
     e.preventDefault();
     if (!title.trim()) return;
     startTransition(async () => {
-      await createProject({ title, description: description || null, area: area as never });
+      await createHabit({ title, area: area as never });
       setTitle("");
-      setDescription("");
-      setArea("OTHER");
       setOpen(false);
       router.refresh();
     });
@@ -51,26 +47,17 @@ export function ProjectFormDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" className="gap-1.5" />}>
         <Plus className="h-4 w-4" />
-        New project
+        New habit
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New project</DialogTitle>
-          <DialogDescription>Group goals, milestones, tasks, notes, and files together.</DialogDescription>
+          <DialogTitle>New habit</DialogTitle>
+          <DialogDescription>Something you want to track daily.</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required />
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-            />
+            <Label htmlFor="habit-title">Title</Label>
+            <Input id="habit-title" value={title} onChange={(e) => setTitle(e.target.value)} autoFocus required />
           </div>
           <div className="flex flex-col gap-2">
             <Label>Life area</Label>
@@ -92,7 +79,7 @@ export function ProjectFormDialog() {
               Cancel
             </Button>
             <Button type="submit" disabled={isPending || !title.trim()}>
-              {isPending ? "Creating…" : "Create project"}
+              {isPending ? "Adding…" : "Add habit"}
             </Button>
           </DialogFooter>
         </form>

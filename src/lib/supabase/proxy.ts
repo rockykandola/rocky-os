@@ -13,6 +13,7 @@ const PROTECTED_PREFIXES = [
   "/contacts",
   "/settings",
   "/integrations",
+  "/gmail",
 ];
 
 const AUTH_PREFIXES = ["/login", "/signup"];

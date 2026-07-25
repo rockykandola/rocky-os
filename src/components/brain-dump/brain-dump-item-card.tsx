@@ -92,7 +92,11 @@ export function BrainDumpItemCard({ item }: { item: BrainDumpItem }) {
           <div className="flex flex-wrap items-center gap-2">
             <Select value={convertAs} onValueChange={(value) => value && setConvertAs(value)}>
               <SelectTrigger className="w-36">
-                <SelectValue />
+                <SelectValue>
+                  {(value: string) =>
+                    ({ TASK: "Convert to Task", PROJECT: "Convert to Project", NOTE: "Convert to Note" })[value] ?? value
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="TASK">Convert to Task</SelectItem>

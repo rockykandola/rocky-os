@@ -49,7 +49,9 @@ export function NewTaskForm({ projects }: { projects: { id: string; title: strin
       />
       <Select value={projectId} onValueChange={(value) => value && setProjectId(value)}>
         <SelectTrigger className="w-40">
-          <SelectValue placeholder="Project" />
+          <SelectValue placeholder="Project">
+            {(value: string) => (value === "none" ? "No project" : (projects.find((p) => p.id === value)?.title ?? "Project"))}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">No project</SelectItem>
@@ -62,7 +64,7 @@ export function NewTaskForm({ projects }: { projects: { id: string; title: strin
       </Select>
       <Select value={priority} onValueChange={(value) => value && setPriority(value)}>
         <SelectTrigger className="w-32">
-          <SelectValue />
+          <SelectValue>{(value: string) => PRIORITY_LABEL[value] ?? value}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           {Object.entries(PRIORITY_LABEL).map(([value, label]) => (

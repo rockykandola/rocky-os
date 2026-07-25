@@ -31,12 +31,18 @@ admin, instead of a Google Tasks list per business and a dozen open Gmail tabs.
 - **Daily Planner**: morning intention-setting + AI plan summary, evening reflection + AI review.
 - **Integrations**: connect one or more Google accounts and pull every Google Tasks list in —
   each list becomes a Project, every task (including completed history and subtasks) comes across.
-  Safe to re-run; it won't create duplicates.
+  Safe to re-run; it won't create duplicates. Same connection also grants Gmail access.
+- **Gmail**: a read-only glance across every connected inbox — recent messages, unread state,
+  snippet — click any message to open it in real Gmail. No sending/drafting (deliberately, given
+  how many accounts you juggle — this is a triage view, not a replacement inbox).
+- **Journal**: one entry per day, mood tracker, optional AI-generated reflection.
+- **Habits**: a 7-day check-off grid per habit.
+- **Contacts**: family/friends/clients with a logged interaction timeline per person.
 - Seed script with realistic demo data across the whole schema.
 
 Deliberately not built: WhatsApp and iMessage automation (neither has a workable API for a hosted
-web app — capture from those manually via Quick Capture instead). Gmail integration, journal/
-habits/health/contacts UI, and notifications are the natural next slice — schema's ready, UI isn't.
+web app — capture from those manually via Quick Capture instead). Health tracker UI and
+notifications center are the remaining next slice — schema's ready, UI isn't.
 
 ## Setup
 
@@ -97,17 +103,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## Connecting Google Tasks (optional, but this is the good part)
+## Connecting Google Tasks + Gmail (optional, but this is the good part)
 
-This lets you import every Google Tasks list you currently use — Hair Maiden India, HMI Website,
-HMI Ad's, Hubspot, Attentive, Yelp, Jumper Local SEO, Rockys Rentals, Personal, Taxes, all of it —
-straight into Rocky OS, completed history and subtasks included. You can connect more than one
-Google account (you have several inboxes), and re-import anytime — it won't duplicate anything.
+One Google OAuth connection covers both: it lets you import every Google Tasks list you currently
+use — Hair Maiden India, HMI Website, HMI Ad's, Hubspot, Attentive, Yelp, Jumper Local SEO, Rockys
+Rentals, Personal, Taxes, all of it — straight into Rocky OS with completed history and subtasks
+included, and it grants read-only access so that account's inbox shows up under **Gmail**. You can
+connect more than one Google account (you have several inboxes), and re-import anytime — it won't
+duplicate anything.
 
 1. Go to [console.cloud.google.com](https://console.cloud.google.com) and create a new project
    (top-left project picker → **New Project**). Any name is fine, e.g. "Rocky OS".
 2. In the left sidebar: **APIs & Services → Library**, search **"Google Tasks API"**, click it,
-   click **Enable**.
+   click **Enable**. Then search **"Gmail API"** and enable that too.
 3. **APIs & Services → OAuth consent screen**: choose **External**, fill in an app name and your
    email, save through the steps. On the **Test users** step, add your own Google account email(s)
    — while the app is in "Testing" mode only test users can connect, which is exactly what you
