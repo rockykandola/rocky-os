@@ -5,8 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
-
-export const ATTACHMENTS_BUCKET = "attachments";
+import { ATTACHMENTS_BUCKET } from "@/lib/storage";
 
 const attachInputSchema = z.object({
   entityType: z.enum(["PROJECT", "MILESTONE", "TASK", "CONTACT", "JOURNAL_ENTRY", "DAILY_PLAN", "NONE"]),

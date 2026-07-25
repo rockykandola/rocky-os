@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
-import { attachFile, deleteFile, ATTACHMENTS_BUCKET } from "@/server/actions/files";
+import { attachFile, deleteFile } from "@/server/actions/files";
+import { ATTACHMENTS_BUCKET } from "@/lib/storage";
 import type { FileAsset } from "@/generated/prisma/client";
 
 function formatBytes(bytes: number | null) {
