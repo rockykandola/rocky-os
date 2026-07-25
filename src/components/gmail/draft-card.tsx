@@ -2,12 +2,12 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Download, Trash2 } from "lucide-react";
+import { Copy, Download, Trash2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { deleteEmailDraft } from "@/server/actions/email-drafts";
+import { deleteEmailDraft, draftEmailReply } from "@/server/actions/email-drafts";
 import type { EmailDraft } from "@/generated/prisma/client";
 
 function slugify(text: string) {
@@ -49,6 +49,18 @@ export function DraftCard({
     });
   }
 
+  function regenerate() {
+    startTransition(async () => {
+      try {
+        await draftEmailReply(draft.connectionId, draft.gmailMessageId);
+        toast.success("Draft regenerated.");
+        router.refresh();
+      } catch {
+        toast.error("Couldn't regenerate this one. Try again in a moment.");
+      }
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-2">
@@ -87,6 +99,10 @@ export function DraftCard({
           {format(new Date(draft.createdAt), "MMM d, yyyy · h:mm a")}
         </span>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="gap-1.5" disabled={isPending} onClick={regenerate}>
+            <RefreshCw className={isPending ? "h-3.5 w-3.5 animate-spin" : "h-3.5 w-3.5"} />
+            Regenerate
+          </Button>
           <Button variant="outline" size="sm" className="gap-1.5" onClick={copyDraft}>
             <Copy className="h-3.5 w-3.5" />
             Copy
