@@ -17,7 +17,8 @@ async function googleFetch<T>(url: string, accessToken: string): Promise<T> {
 }
 
 function headerValue(headers: { name: string; value: string }[] | undefined, name: string) {
-  return headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? "";
+  const raw = headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? "";
+  return sanitizeText(raw);
 }
 
 export type GmailMessagePage = {
@@ -91,10 +92,33 @@ const HTML_ENTITIES: Record<string, string> = {
   "&nbsp;": " ",
 };
 
-function decodeHtmlEntities(text: string): string {
+// Common "smart" punctuation from Word/Outlook-style signatures, normalized to plain ASCII.
+// Anything left outside Latin-1 gets stripped: it's not just an AI-prompt nicety — Node's fetch
+// throws if a non-Latin-1 character ends up in an HTTP header anywhere downstream (which bit us
+// with a bullet character, U+2022, in a real signature), so this text needs to be safe at the
+// source rather than sanitized ad hoc at every call site.
+const SMART_CHARS: Record<string, string> = {
+  "‘": "'",
+  "’": "'",
+  "“": '"',
+  "”": '"',
+  "–": "-",
+  "—": "-",
+  "…": "...",
+  "•": "-",
+};
+
+export function sanitizeText(text: string): string {
   return text
+    .replace(/[‘’“”–—…•]/g, (m) => SMART_CHARS[m])
+    .replace(/[^\x00-\xFF]/g, "");
+}
+
+function decodeHtmlEntities(text: string): string {
+  const decoded = text
     .replace(/&amp;|&#39;|&apos;|&quot;|&lt;|&gt;|&nbsp;/g, (m) => HTML_ENTITIES[m])
     .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+  return sanitizeText(decoded);
 }
 
 function findPlainTextBody(part: GmailPart | undefined): string | null {

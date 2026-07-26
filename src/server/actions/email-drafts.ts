@@ -5,7 +5,7 @@ import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getValidAccessToken } from "@/lib/google/tokens";
-import { getMessageDetail, getThreadMessages, listSentSamples, stripQuotedReply } from "@/lib/google/gmail-client";
+import { getMessageDetail, getThreadMessages, listSentSamples, stripQuotedReply, sanitizeText } from "@/lib/google/gmail-client";
 import { generateEmailDraftReply } from "@/lib/ai/email-draft";
 
 function emailAddressOf(headerValue: string): string {
@@ -82,7 +82,7 @@ const voiceNotesSchema = z.string().trim().max(4000);
 
 export async function updateVoiceNotes(notes: string) {
   const user = await requireUser();
-  const parsed = voiceNotesSchema.parse(notes);
+  const parsed = sanitizeText(voiceNotesSchema.parse(notes));
   await db.user.update({ where: { id: user.id }, data: { voiceNotes: parsed || null } });
   revalidatePath("/gmail");
 }
