@@ -14,7 +14,8 @@ export async function generateJournalSummary(body: string, mood: number | null):
       prompt: `Mood (1-5, 5 is best): ${mood ?? "not specified"}.\nEntry: ${body}`,
     });
     return text.trim();
-  } catch {
+  } catch (err) {
+    console.error("[generateJournalSummary] skipping AI summary:", err);
     return null;
   }
 }

@@ -22,7 +22,8 @@ export async function generateMorningSummary(input: {
       }.`,
     });
     return text.trim();
-  } catch {
+  } catch (err) {
+    console.error("[generateMorningSummary] falling back:", err);
     return fallback;
   }
 }
@@ -45,7 +46,8 @@ export async function generateEveningSummary(input: {
       }.`,
     });
     return text.trim();
-  } catch {
+  } catch (err) {
+    console.error("[generateEveningSummary] falling back:", err);
     return fallback;
   }
 }

@@ -58,7 +58,8 @@ export async function generateEmailDraftReply(input: {
   try {
     const { text } = await generateText({ model: chatModel, system, prompt });
     return text.trim();
-  } catch {
+  } catch (err) {
+    console.error("[generateEmailDraftReply] falling back to placeholder:", err);
     return `${fallback}\n\n(AI drafting failed — check that OPENAI_API_KEY is a valid, active key.)`;
   }
 }

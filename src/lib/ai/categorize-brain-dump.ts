@@ -49,7 +49,8 @@ export async function categorizeBrainDumpText(rawText: string): Promise<BrainDum
       prompt: rawText,
     });
     return object;
-  } catch {
+  } catch (err) {
+    console.error("[categorizeBrainDumpText] falling back to heuristic:", err);
     return heuristicCategorize(rawText);
   }
 }

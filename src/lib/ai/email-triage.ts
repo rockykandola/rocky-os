@@ -44,7 +44,8 @@ export async function classifyEmails(messages: TriageInput[]): Promise<TriageRes
       ),
     });
     return object.results;
-  } catch {
+  } catch (err) {
+    console.error("[classifyEmails] falling back to unclassified:", err);
     return safeDefault(messages);
   }
 }
