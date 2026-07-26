@@ -30,10 +30,15 @@ export async function classifyEmails(messages: TriageInput[]): Promise<TriageRes
       schema: triageSchema,
       system:
         "You triage a busy small-business owner's inbox. For each email (by id), decide: " +
-        "isSpam — true for marketing, newsletters, automated receipts/notifications, surveys, cold outreach; " +
-        "false for real messages from real people or businesses he actually works with, even if short. " +
-        "needsAction — true only when it clearly needs a reply or decision from him soon; false for FYI-only " +
-        "or already-resolved threads. Be conservative: when unsure whether something is spam, mark isSpam false.",
+        "isSpam — true for marketing, newsletters, automated receipts/notifications, surveys, cold outreach, " +
+        "AND always true for lender/funding solicitations (business loans, 'working capital', merchant cash " +
+        "advance, 'you were pre-approved', factoring offers) even when personalized with his name or business — " +
+        "these are mass outreach regardless of how tailored they look. " +
+        "For everything else: false for real messages from real people or businesses he actually works with, " +
+        "even if short. " +
+        "needsAction — true only when it clearly needs a reply or decision from him soon; false for FYI-only, " +
+        "already-resolved threads, or anything marked isSpam. Be conservative on isSpam otherwise: when unsure, " +
+        "mark isSpam false.",
       prompt: JSON.stringify(
         messages.map((m) => ({ id: m.id, from: m.from, subject: m.subject, snippet: m.snippet })),
       ),
