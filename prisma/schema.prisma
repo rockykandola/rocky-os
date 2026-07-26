@@ -42,6 +42,7 @@ model User {
   notifications Notification[]
   googleConnections GoogleAccountConnection[]
   emailDrafts   EmailDraft[]
+  emailClassifications EmailClassification[]
 
   @@map("users")
 }
@@ -535,4 +536,18 @@ model EmailDraft {
 
   @@unique([userId, gmailMessageId])
   @@map("email_drafts")
+}
+
+/// Cached AI triage result for a Gmail message, so re-opening the inbox doesn't reclassify it.
+model EmailClassification {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailMessageId String
+  isSpam         Boolean  @default(false)
+  needsAction    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@unique([userId, gmailMessageId])
+  @@map("email_classifications")
 }

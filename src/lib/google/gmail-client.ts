@@ -20,21 +20,27 @@ function headerValue(headers: { name: string; value: string }[] | undefined, nam
   return headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? "";
 }
 
+export type GmailMessagePage = {
+  messages: GmailMessage[];
+  nextPageToken: string | null;
+};
+
 /** Lists the most recent messages (default: inbox) with just enough metadata for a list view. */
 export async function listRecentMessages(
   accessToken: string,
-  { maxResults = 20, q }: { maxResults?: number; q?: string } = {},
-): Promise<GmailMessage[]> {
+  { maxResults = 20, q, pageToken }: { maxResults?: number; q?: string; pageToken?: string } = {},
+): Promise<GmailMessagePage> {
   const listUrl = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");
   listUrl.searchParams.set("maxResults", String(maxResults));
   listUrl.searchParams.set("labelIds", "INBOX");
   if (q) listUrl.searchParams.set("q", q);
+  if (pageToken) listUrl.searchParams.set("pageToken", pageToken);
 
-  const list = await googleFetch<{ messages?: { id: string; threadId: string }[] }>(
-    listUrl.toString(),
-    accessToken,
-  );
-  if (!list.messages?.length) return [];
+  const list = await googleFetch<{
+    messages?: { id: string; threadId: string }[];
+    nextPageToken?: string;
+  }>(listUrl.toString(), accessToken);
+  if (!list.messages?.length) return { messages: [], nextPageToken: null };
 
   const messages = await Promise.all(
     list.messages.map(async (m) => {
@@ -62,7 +68,7 @@ export async function listRecentMessages(
     }),
   );
 
-  return messages;
+  return { messages, nextPageToken: list.nextPageToken ?? null };
 }
 
 type GmailPart = {

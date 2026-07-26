@@ -34,7 +34,7 @@ export default async function IntegrationsPage({
             <Plug className="h-4 w-4 text-primary" />
             Google Tasks
           </CardTitle>
-          <Button size="sm" className="gap-1.5" render={<Link href="/api/integrations/google/authorize" />}>
+          <Button size="sm" className="gap-1.5" nativeButton={false} render={<Link href="/api/integrations/google/authorize" />}>
             <Plus className="h-4 w-4" />
             Connect Google account
           </Button>
