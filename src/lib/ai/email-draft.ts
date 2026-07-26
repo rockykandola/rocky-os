@@ -1,6 +1,7 @@
 import "server-only";
 import { generateText } from "ai";
 import { aiEnabled, chatModel } from "./openai";
+import { sanitizeText } from "../google/gmail-client";
 
 export type ThreadHistoryEntry = {
   from: string;
@@ -55,8 +56,14 @@ export async function generateEmailDraftReply(input: {
 
   const prompt = `Conversation so far:\n${historyText}\n\nSubject: ${input.subject}\nLatest message, from ${input.latestFrom}:\n${input.latestBody}`;
 
+  // Last line of defense: whatever the source (Gmail body, voice notes, project titles),
+  // no non-Latin-1 character should ever reach the model call — one already crashed this
+  // in production as a downstream ByteString error.
+  const safeSystem = sanitizeText(system);
+  const safePrompt = sanitizeText(prompt);
+
   try {
-    const { text } = await generateText({ model: chatModel, system, prompt });
+    const { text } = await generateText({ model: chatModel, system: safeSystem, prompt: safePrompt });
     return text.trim();
   } catch (err) {
     console.error("[generateEmailDraftReply] falling back to placeholder:", err);
