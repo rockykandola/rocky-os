@@ -204,6 +204,63 @@ export async function getThreadMessages(accessToken: string, threadId: string): 
   }));
 }
 
+/** Parses a From/To header value into individual {name, email} pairs (handles comma-separated lists). */
+export function parseAddressList(headerValue: string): { name: string; email: string }[] {
+  const results: { name: string; email: string }[] = [];
+  const regex = /(?:"([^"]*)"|([^,<]*))\s*<([^>]+)>|([^\s,<>]+@[^\s,<>]+)/g;
+  let match: RegExpExecArray | null;
+  while ((match = regex.exec(headerValue)) !== null) {
+    const email = (match[3] ?? match[4] ?? "").trim().toLowerCase();
+    if (!email.includes("@")) continue;
+    const name = sanitizeText((match[1] ?? match[2] ?? "").trim());
+    results.push({ name, email });
+  }
+  return results;
+}
+
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
+}
+
+/** Scans recent inbox + sent messages for From/To addresses — used to build a real contacts list. */
+export async function listAddressCandidates(accessToken: string, maxPerFolder = 60): Promise<{ name: string; email: string }[]> {
+  const candidates: { name: string; email: string }[] = [];
+
+  for (const labelId of ["INBOX", "SENT"]) {
+    const listUrl = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");
+    listUrl.searchParams.set("maxResults", String(maxPerFolder));
+    listUrl.searchParams.set("labelIds", labelId);
+
+    const list = await googleFetch<{ messages?: { id: string }[] }>(listUrl.toString(), accessToken);
+    if (!list.messages?.length) continue;
+
+    const details = await mapWithConcurrency(list.messages, 10, async (m) => {
+      const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}`);
+      url.searchParams.set("format", "metadata");
+      ["From", "To"].forEach((h) => url.searchParams.append("metadataHeaders", h));
+      return googleFetch<{ payload?: { headers?: { name: string; value: string }[] } }>(url.toString(), accessToken);
+    });
+
+    for (const detail of details) {
+      const from = detail.payload?.headers?.find((h) => h.name.toLowerCase() === "from")?.value;
+      const to = detail.payload?.headers?.find((h) => h.name.toLowerCase() === "to")?.value;
+      if (from) candidates.push(...parseAddressList(from));
+      if (to) candidates.push(...parseAddressList(to));
+    }
+  }
+
+  return candidates;
+}
+
 /** Pulls a handful of recently sent messages to use as writing-style reference. */
 export async function listSentSamples(accessToken: string, maxResults = 5): Promise<string[]> {
   const listUrl = new URL("https://gmail.googleapis.com/gmail/v1/users/me/messages");

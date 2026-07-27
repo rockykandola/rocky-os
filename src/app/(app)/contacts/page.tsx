@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/auth";
 import { getContacts } from "@/server/data/contacts";
 import { RELATIONSHIP_LABEL } from "@/lib/contact-format";
 import { ContactFormDialog } from "@/components/contacts/contact-form-dialog";
+import { ImportContactsButton } from "@/components/contacts/import-contacts-button";
 
 function initials(name: string) {
   return name
@@ -27,14 +28,19 @@ export default async function ContactsPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Contacts</h1>
           <p className="text-sm text-muted-foreground">Family, friends, clients — everyone that matters.</p>
         </div>
-        <ContactFormDialog />
+        <div className="flex items-center gap-2">
+          <ImportContactsButton />
+          <ContactFormDialog />
+        </div>
       </div>
 
       {contacts.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-2 py-16 text-center">
             <Users className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No contacts yet. Add your first one.</p>
+            <p className="text-sm text-muted-foreground">
+              No contacts yet. Import from Gmail, or add your first one.
+            </p>
           </CardContent>
         </Card>
       ) : (

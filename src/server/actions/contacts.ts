@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getValidAccessToken } from "@/lib/google/tokens";
+import { listAddressCandidates } from "@/lib/google/gmail-client";
 
 const RELATIONSHIPS = ["FAMILY", "FRIEND", "COLLEAGUE", "CLIENT", "PARTNER", "ACQUAINTANCE", "OTHER"] as const;
 
@@ -35,6 +37,51 @@ export async function createContact(input: z.input<typeof contactInputSchema>) {
 
   revalidatePath("/contacts");
   return contact;
+}
+
+export async function importContactsFromGmail() {
+  const user = await requireUser();
+  const connections = await db.googleAccountConnection.findMany({ where: { userId: user.id } });
+  if (connections.length === 0) return { imported: 0, seen: 0 };
+
+  const myAddresses = new Set(connections.map((c) => c.email.toLowerCase()));
+  const byEmail = new Map<string, string>();
+
+  for (const connection of connections) {
+    const accessToken = await getValidAccessToken(connection);
+    const candidates = await listAddressCandidates(accessToken, 60);
+    for (const { name, email } of candidates) {
+      if (myAddresses.has(email)) continue;
+      const cleanName = name.trim();
+      const current = byEmail.get(email);
+      // Prefer a real display name over a bare email-as-name.
+      if (!current || (current === email && cleanName && cleanName !== email)) {
+        byEmail.set(email, cleanName || email);
+      }
+    }
+  }
+
+  const existing = await db.contact.findMany({
+    where: { userId: user.id, email: { in: [...byEmail.keys()] } },
+    select: { email: true },
+  });
+  const existingEmails = new Set(existing.map((c) => c.email!));
+
+  const toCreate = [...byEmail.entries()].filter(([email]) => !existingEmails.has(email));
+
+  if (toCreate.length > 0) {
+    await db.contact.createMany({
+      data: toCreate.map(([email, name]) => ({
+        userId: user.id,
+        fullName: name,
+        email,
+        relationship: "OTHER" as const,
+      })),
+    });
+  }
+
+  revalidatePath("/contacts");
+  return { imported: toCreate.length, seen: byEmail.size };
 }
 
 export async function deleteContact(id: string) {

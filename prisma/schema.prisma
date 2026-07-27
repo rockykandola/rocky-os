@@ -408,6 +408,7 @@ model Contact {
 
   interactions Interaction[]
 
+  @@unique([userId, email])
   @@index([userId, relationship])
   @@map("contacts")
 }
