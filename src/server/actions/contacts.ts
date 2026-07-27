@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getValidAccessToken } from "@/lib/google/tokens";
 import { listAddressCandidates } from "@/lib/google/gmail-client";
+import { parseVCards } from "@/lib/vcard";
 
 const RELATIONSHIPS = ["FAMILY", "FRIEND", "COLLEAGUE", "CLIENT", "PARTNER", "ACQUAINTANCE", "OTHER"] as const;
 
@@ -82,6 +83,51 @@ export async function importContactsFromGmail() {
 
   revalidatePath("/contacts");
   return { imported: toCreate.length, seen: byEmail.size };
+}
+
+export async function importContactsFromVCard(vcardText: string) {
+  const user = await requireUser();
+  const parsed = parseVCards(vcardText).filter((e) => e.fullName || e.email || e.phone);
+
+  const existing = await db.contact.findMany({
+    where: { userId: user.id },
+    select: { email: true, phone: true },
+  });
+  const existingEmails = new Set(existing.filter((c) => c.email).map((c) => c.email!.toLowerCase()));
+  const existingPhones = new Set(existing.filter((c) => c.phone).map((c) => c.phone!));
+
+  const seenEmails = new Set<string>();
+  const seenPhones = new Set<string>();
+  const toCreate: typeof parsed = [];
+
+  for (const entry of parsed) {
+    const emailKey = entry.email?.toLowerCase();
+    if (emailKey) {
+      if (existingEmails.has(emailKey) || seenEmails.has(emailKey)) continue;
+      seenEmails.add(emailKey);
+    } else if (entry.phone) {
+      if (existingPhones.has(entry.phone) || seenPhones.has(entry.phone)) continue;
+      seenPhones.add(entry.phone);
+    }
+    toCreate.push(entry);
+  }
+
+  if (toCreate.length > 0) {
+    await db.contact.createMany({
+      data: toCreate.map((e) => ({
+        userId: user.id,
+        fullName: e.fullName || e.email || e.phone || "Unknown",
+        email: e.email,
+        phone: e.phone,
+        company: e.company,
+        birthday: e.birthday,
+        relationship: "OTHER" as const,
+      })),
+    });
+  }
+
+  revalidatePath("/contacts");
+  return { imported: toCreate.length, seen: parsed.length };
 }
 
 export async function deleteContact(id: string) {

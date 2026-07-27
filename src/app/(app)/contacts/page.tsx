@@ -7,6 +7,7 @@ import { getContacts } from "@/server/data/contacts";
 import { RELATIONSHIP_LABEL } from "@/lib/contact-format";
 import { ContactFormDialog } from "@/components/contacts/contact-form-dialog";
 import { ImportContactsButton } from "@/components/contacts/import-contacts-button";
+import { ImportVCardButton } from "@/components/contacts/import-vcard-button";
 
 function initials(name: string) {
   return name
@@ -30,6 +31,7 @@ export default async function ContactsPage() {
         </div>
         <div className="flex items-center gap-2">
           <ImportContactsButton />
+          <ImportVCardButton />
           <ContactFormDialog />
         </div>
       </div>
