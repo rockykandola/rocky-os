@@ -24,7 +24,9 @@ function unfoldLines(text: string): string[] {
 function parseLine(line: string): { name: string; value: string } | null {
   const idx = line.indexOf(":");
   if (idx === -1) return null;
-  const name = line.slice(0, idx).split(";")[0].toUpperCase();
+  // iCloud groups labeled properties like "item1.TEL;type=pref" — strip the "item1." group prefix.
+  const rawName = line.slice(0, idx).replace(/^item\d+\./i, "");
+  const name = rawName.split(";")[0].toUpperCase();
   return { name, value: line.slice(idx + 1) };
 }
 
@@ -37,7 +39,9 @@ function parseBirthday(value: string): Date | null {
   const match = cleaned.match(/^(\d{4})-?(\d{2})-?(\d{2})$/);
   if (!match) return null;
   const [, y, m, d] = match;
-  const date = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));
+  const year = Number(y);
+  if (year < 1900 || year > new Date().getFullYear()) return null;
+  const date = new Date(Date.UTC(year, Number(m) - 1, Number(d)));
   return Number.isNaN(date.getTime()) ? null : date;
 }
 

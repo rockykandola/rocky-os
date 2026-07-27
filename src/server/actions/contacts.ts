@@ -8,6 +8,7 @@ import { db } from "@/lib/db";
 import { getValidAccessToken } from "@/lib/google/tokens";
 import { listAddressCandidates } from "@/lib/google/gmail-client";
 import { parseVCards } from "@/lib/vcard";
+import { parseHubspotDealsCSV } from "@/lib/hubspot-deals-csv";
 
 const RELATIONSHIPS = ["FAMILY", "FRIEND", "COLLEAGUE", "CLIENT", "PARTNER", "ACQUAINTANCE", "OTHER"] as const;
 
@@ -128,6 +129,100 @@ export async function importContactsFromVCard(vcardText: string) {
 
   revalidatePath("/contacts");
   return { imported: toCreate.length, seen: parsed.length };
+}
+
+export async function importContactsFromHubSpotCSV(csvText: string) {
+  const user = await requireUser();
+  const { clients, deals } = parseHubspotDealsCSV(csvText);
+  if (clients.length === 0) return { newContacts: 0, matchedContacts: 0, dealsImported: 0 };
+
+  const existing = await db.contact.findMany({
+    where: { userId: user.id },
+    select: { id: true, email: true, phone: true },
+  });
+  const existingByPhone = new Map(existing.filter((c) => c.phone).map((c) => [c.phone!, c.id]));
+  const existingByEmail = new Map(existing.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]));
+
+  const keyToContactId = new Map<string, string>();
+  const toCreate: typeof clients = [];
+  // A client can appear under multiple keys (phone changed over the years but email stayed
+  // the same) — redirect later duplicates to the first-seen key for that email so they
+  // resolve to one contact instead of violating the (userId, email) unique constraint.
+  const emailToRepresentativeKey = new Map<string, string>();
+  const redirectKeyTo = new Map<string, string>();
+
+  for (const client of clients) {
+    const existingId = (client.phone && existingByPhone.get(client.phone)) || (client.email && existingByEmail.get(client.email));
+    if (existingId) {
+      keyToContactId.set(client.key, existingId);
+      continue;
+    }
+    const representativeKey = client.email && emailToRepresentativeKey.get(client.email);
+    if (representativeKey) {
+      redirectKeyTo.set(client.key, representativeKey);
+      continue;
+    }
+    if (client.email) emailToRepresentativeKey.set(client.email, client.key);
+    toCreate.push(client);
+  }
+
+  if (toCreate.length > 0) {
+    await db.contact.createMany({
+      data: toCreate.map((c) => ({
+        userId: user.id,
+        fullName: c.fullName,
+        email: c.email,
+        phone: c.phone,
+        company: c.company,
+        relationship: "CLIENT" as const,
+      })),
+    });
+
+    const createdPhones = toCreate.filter((c) => c.phone).map((c) => c.phone!);
+    const createdEmails = toCreate.filter((c) => c.email).map((c) => c.email!);
+    const created = await db.contact.findMany({
+      where: {
+        userId: user.id,
+        OR: [
+          ...(createdPhones.length ? [{ phone: { in: createdPhones } }] : []),
+          ...(createdEmails.length ? [{ email: { in: createdEmails } }] : []),
+        ],
+      },
+      select: { id: true, email: true, phone: true },
+    });
+    const createdByPhone = new Map(created.filter((c) => c.phone).map((c) => [c.phone!, c.id]));
+    const createdByEmail = new Map(created.filter((c) => c.email).map((c) => [c.email!.toLowerCase(), c.id]));
+
+    for (const client of toCreate) {
+      const id = (client.phone && createdByPhone.get(client.phone)) || (client.email && createdByEmail.get(client.email));
+      if (id) keyToContactId.set(client.key, id);
+    }
+  }
+
+  for (const [key, representativeKey] of redirectKeyTo) {
+    const id = keyToContactId.get(representativeKey);
+    if (id) keyToContactId.set(key, id);
+  }
+
+  const interactionRows = deals
+    .map((d) => {
+      const contactId = keyToContactId.get(d.key);
+      return contactId
+        ? { userId: user.id, contactId, type: "NOTE" as const, summary: d.summary.slice(0, 4900), occurredAt: d.occurredAt }
+        : null;
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+
+  if (interactionRows.length > 0) {
+    await db.interaction.createMany({ data: interactionRows });
+  }
+
+  revalidatePath("/contacts");
+  return {
+    newContacts: toCreate.length,
+    matchedContacts: clients.length - toCreate.length,
+    dealsImported: interactionRows.length,
+  };
 }
 
 export async function deleteContact(id: string) {
