@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, AlertTriangle, Target } from "lucide-react";
+import { CalendarClock, AlertTriangle, Target, Users, Cake } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { requireUser } from "@/lib/auth";
@@ -9,17 +9,23 @@ import {
   getOverdueTasks,
   getCandidateTasksForTopThree,
 } from "@/server/data/tasks";
+import { getClientAttentionInsights } from "@/server/data/contacts";
 import { TaskItem } from "@/components/tasks/task-item";
 import { TopThreePicker } from "@/components/dashboard/top-three-picker";
+
+function daysSince(date: Date) {
+  return Math.round((Date.now() - date.getTime()) / 86_400_000);
+}
 
 export default async function DashboardPage() {
   const user = await requireUser();
 
-  const [topThree, dueToday, overdue, candidates] = await Promise.all([
+  const [topThree, dueToday, overdue, candidates, clientAttention] = await Promise.all([
     getTopThreeTasks(user.id),
     getTasksDueToday(user.id),
     getOverdueTasks(user.id),
     getCandidateTasksForTopThree(user.id),
+    getClientAttentionInsights(user.id),
   ]);
 
   const greetingName = user.fullName?.split(" ")[0] || "there";
@@ -102,6 +108,66 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {(clientAttention.goingCold.length > 0 || clientAttention.upcomingBirthdays.length > 0) && (
+        <div className="grid gap-6 md:grid-cols-2">
+          {clientAttention.goingCold.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Users className="h-4 w-4 text-primary" />
+                  Clients going quiet
+                  <Badge variant="secondary">{clientAttention.goingCold.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col divide-y">
+                  {clientAttention.goingCold.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/contacts/${c.id}`}
+                      className="flex items-center justify-between gap-2 py-2.5 text-sm hover:text-primary"
+                    >
+                      <span className="truncate font-medium">{c.fullName}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {daysSince(c.lastPurchase)}d since last purchase
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {clientAttention.upcomingBirthdays.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Cake className="h-4 w-4 text-primary" />
+                  Birthdays coming up
+                  <Badge variant="secondary">{clientAttention.upcomingBirthdays.length}</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-col divide-y">
+                  {clientAttention.upcomingBirthdays.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/contacts/${c.id}`}
+                      className="flex items-center justify-between gap-2 py-2.5 text-sm hover:text-primary"
+                    >
+                      <span className="truncate font-medium">{c.fullName}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {c.daysUntil === 0 ? "Today" : c.daysUntil === 1 ? "Tomorrow" : `In ${c.daysUntil}d`}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-between rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
         <span>Got something on your mind? Use Quick Capture in the top bar, then sort it in Brain Dump.</span>

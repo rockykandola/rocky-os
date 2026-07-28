@@ -204,12 +204,26 @@ export async function importContactsFromHubSpotCSV(csvText: string) {
     if (id) keyToContactId.set(key, id);
   }
 
+  // Re-importing an updated export re-sends every old row too — dedupe against what's
+  // already logged (by contact + date + exact text) so only genuinely new deals get added.
+  const involvedContactIds = [...new Set(keyToContactId.values())];
+  const existingInteractions = involvedContactIds.length
+    ? await db.interaction.findMany({
+        where: { userId: user.id, contactId: { in: involvedContactIds } },
+        select: { contactId: true, occurredAt: true, summary: true },
+      })
+    : [];
+  const existingSignatures = new Set(existingInteractions.map((i) => `${i.contactId}|${i.occurredAt.getTime()}|${i.summary}`));
+
   const interactionRows = deals
     .map((d) => {
       const contactId = keyToContactId.get(d.key);
-      return contactId
-        ? { userId: user.id, contactId, type: "NOTE" as const, summary: d.summary.slice(0, 4900), occurredAt: d.occurredAt }
-        : null;
+      if (!contactId) return null;
+      const summary = d.summary.slice(0, 4900);
+      const signature = `${contactId}|${d.occurredAt.getTime()}|${summary}`;
+      if (existingSignatures.has(signature)) return null;
+      existingSignatures.add(signature);
+      return { userId: user.id, contactId, type: "NOTE" as const, summary, occurredAt: d.occurredAt };
     })
     .filter((r): r is NonNullable<typeof r> => r !== null);
 

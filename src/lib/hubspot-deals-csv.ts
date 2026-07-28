@@ -21,7 +21,12 @@ function normalizeHeader(h: string): string {
 function parseDate(value: string): Date | null {
   if (!value.trim()) return null;
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+  if (Number.isNaN(date.getTime())) return null;
+  // Source exports have occasional typo'd years (e.g. "5/14/0120" instead of "5/14/2020") —
+  // treat anything outside a sane business-record range as unparseable rather than display it.
+  const year = date.getFullYear();
+  if (year < 2000 || year > new Date().getFullYear() + 1) return null;
+  return date;
 }
 
 /** Parses a HubSpot "deals" export (one row per sale) into deduped clients + a per-deal interaction log. */
