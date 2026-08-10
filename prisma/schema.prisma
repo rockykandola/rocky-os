@@ -43,6 +43,7 @@ model User {
   googleConnections GoogleAccountConnection[]
   emailDrafts   EmailDraft[]
   emailClassifications EmailClassification[]
+  foundationVendorLeads FoundationVendorLead[]
 
   @@map("users")
 }
@@ -551,4 +552,57 @@ model EmailClassification {
 
   @@unique([userId, gmailMessageId])
   @@map("email_classifications")
+}
+
+// ---------------------------------------------------------------------------
+// Project Foundation
+// ---------------------------------------------------------------------------
+
+enum FoundationVendorStatus {
+  NOT_CONTACTED
+  CONTACTED
+  MEETING_REQUESTED
+  MEETING_SET
+  MET
+  QUALIFIED
+  REJECTED
+
+  @@map("foundation_vendor_status")
+}
+
+enum FoundationVendorPriority {
+  HIGH
+  MEDIUM
+  LOW
+
+  @@map("foundation_vendor_priority")
+}
+
+model FoundationVendorLead {
+  id           String                   @id @default(uuid()) @db.Uuid
+  userId       String                   @db.Uuid
+  user         User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceKey    String
+  countryGroup String
+  name         String
+  city         String?
+  country      String?
+  address      String?
+  contact      String?
+  email        String?
+  website      String?
+  sourceUrl    String?
+  leadQuality  String?
+  businessType String?
+  notes        String?
+  status       FoundationVendorStatus   @default(NOT_CONTACTED)
+  priority     FoundationVendorPriority?
+  meetingDate  String?
+  followUp     String?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@unique([userId, sourceKey])
+  @@index([userId, countryGroup, status])
+  @@map("foundation_vendor_leads")
 }

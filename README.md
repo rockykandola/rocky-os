@@ -38,6 +38,7 @@ admin, instead of a Google Tasks list per business and a dozen open Gmail tabs.
 - **Journal**: one entry per day, mood tracker, optional AI-generated reflection.
 - **Habits**: a 7-day check-off grid per habit.
 - **Contacts**: family/friends/clients with a logged interaction timeline per person.
+- **Project Foundation**: protected reset dashboard with trip anchors, budget guardrails, and a persistent Cambodia/Myanmar/Vietnam vendor outreach pipeline.
 - Seed script with realistic demo data across the whole schema.
 
 Deliberately not built: WhatsApp and iMessage automation (neither has a workable API for a hosted
@@ -102,6 +103,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+Project Foundation is available at [http://localhost:3000/project-foundation](http://localhost:3000/project-foundation). On first visit, click **Import 30 vendor leads** to copy the working vendor list into your Rocky OS account. Use the vendor table to filter by country, search leads, set outreach status, assign meeting priority, record meeting dates, and keep follow-up notes.
 
 ## Connecting Google Tasks + Gmail (optional, but this is the good part)
 

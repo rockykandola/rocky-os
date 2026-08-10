@@ -10,6 +10,7 @@ import {
   Sparkles,
   Users,
   Mail,
+  Compass,
 } from "lucide-react";
 
 export type NavItem = {
@@ -28,5 +29,6 @@ export const navItems: NavItem[] = [
   { title: "Habits", href: "/habits", icon: Sparkles },
   { title: "Contacts", href: "/contacts", icon: Users },
   { title: "Gmail", href: "/gmail", icon: Mail },
+  { title: "Project Foundation", href: "/project-foundation", icon: Compass },
   { title: "Integrations", href: "/integrations", icon: Plug },
 ];
