@@ -8,5 +8,5 @@ import { importFoundationVendorLeads } from "@/server/actions/project-foundation
 export function ImportVendorLeadsButton() {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
-  return <Button variant="outline" disabled={isPending} onClick={() => startTransition(async () => { await importFoundationVendorLeads(); router.refresh(); })}>{isPending ? "Importing…" : "Import 30 vendor leads"}</Button>;
+  return <Button variant="outline" disabled={isPending} onClick={() => startTransition(async () => { await importFoundationVendorLeads(); router.refresh(); })}>{isPending ? "Importing..." : "Import 34 sourcing leads"}</Button>;
 }
