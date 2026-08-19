@@ -1,0 +1,7 @@
+flight_id,booking_id,date,from,to,airline,flight_number,departure_local,arrival_local,status,cash_paid_usd,points_used_gross,points_rebated,points_used_net,stated_value_usd,baggage,seat_preference,booking_channel,notes
+LAX-MOB-2026-08-15,JD3W29,2026-08-15,LAX,MOB,United,UA1990+UA1326+UA4312,10:45,21:59,Booked,TBD,0,0,0,TBD,Not shown,Aisle,Priceline,"LAX → AUS → MOB; arrives Mobile 21:59; cost not visible in supplied confirmation"
+MOB-LAX-2026-08-18,JD3W29,2026-08-18,MOB,LAX,United,UA4989+UA2460,09:00,13:47,Booked,TBD,0,0,0,TBD,Not shown,Aisle,Priceline,"MOB → IAH → LAX; cost not visible in supplied confirmation"
+LAX-ATH-2026-08-20,HAXXD4,2026-08-20,LAX,ATH,Delta/KLM,DL9468+DL9157,13:50,01:15+2,Booked,0,75519,24500,51019,755.19,Carry-on roller + backpack,Aisle,Amex Travel,"35% points back applied to up to 70,000 points; user reports 24,500 points returned"
+ATH-BUD-2026-08-26,1658114647255761,2026-08-26,ATH,BUD,Wizz Air,W62442,09:35,10:45,Booked,219.84,0,0,0,219.84,Carry-on roller + backpack,Aisle,Trip.com,"Baggage and seat purchase/allowance still needs confirmation"
+BUD-ATH-2026-08-31,1658114647255761,2026-08-31,BUD,ATH,Wizz Air,W62441,05:50,08:55,Booked,219.84,0,0,0,219.84,Carry-on roller + backpack,Aisle,Trip.com,"Baggage and seat purchase/allowance still needs confirmation"
+ATH-CNX-2026-09-01,688109599,2026-09-01,ATH,CNX,Gulf Air,GF42+GF152+GF4444,15:20,13:45+1,Booked,0,23290,0,23290,465.80,15 lb cabin + 66 lb checked,Aisle,Merrill Lynch,"0.2 multiplier reported by user; arrives Sep 2"

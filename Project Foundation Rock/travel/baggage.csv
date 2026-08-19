@@ -1,0 +1,5 @@
+segment,airline,checked_allowance,cabin_allowance,inventory_weight_planned,personal_weight_planned,bag_fee_paid_usd,verified_status,seat_preference,notes
+LAX-ATH,Delta/KLM,Not shown,Widely approved carry-on roller + backpack,,,0,Needs verification,Aisle,"Confirm allowance and aisle seat in Manage My Trips"
+ATH-BUD,Wizz Air,0 free shown,Widely approved carry-on roller + backpack,,,0,Needs verification,Aisle,"Confirm roller dimensions, priority/cabin allowance, and aisle seat"
+BUD-ATH,Wizz Air,0 free shown,Widely approved carry-on roller + backpack,,,0,Needs verification,Aisle,"Confirm roller dimensions, priority/cabin allowance, and aisle seat"
+ATH-CNX,Gulf Air,66 lb,1 piece at 15 lb,,,0,Confirmed in ticket,Aisle,"Carry-on roller and backpack should be checked against the 15 lb cabin limit"

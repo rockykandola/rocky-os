@@ -1,0 +1,8 @@
+stay_id,city,check_in,check_out,status,estimated_nights,estimated_nightly_usd,estimated_total_usd,actual_total_usd,points_cost,booking_reference,notes
+MOB-1,Mobile Alabama,2026-08-15,2026-08-18,Family visit,3,0,0,,, ,Surprise visit with mom and dad; lodging assumed family-hosted unless booking details are added
+ATH-1,Athens,2026-08-21,2026-08-26,Arranged with Jimmy and Sam,5,0,0,0,0,,Nice Airbnb near Acropolis; confirm whether any shared cost remains
+BUD-1A,Budapest,2026-08-26,2026-08-31,Preferred hosted option,5,0,0,0,0,,Jimmy says Rocky can stay near Bolssvan/Bolsván; exact location and dates to confirm
+BUD-1B,Budapest,2026-08-26,2026-08-31,Backup option,5,45,225,,Marriott points, ,Marriott redemption available; points expire Aug 31; preserve as a decision until hosted option is confirmed
+ATH-2,Athens,2026-08-31,2026-09-01,Hosted or low-cost fallback,1,0,45,,0,,Overnight before Gulf Air departure; use $45 only if hosted arrangement does not cover it
+CNX-1,Chiang Mai,2026-09-02,2026-09-15,Hosted initial base,13,0,0,0,0,,Jimmy says Rocky can stay free for a period; exact end date flexible
+CNX-2,Chiang Mai,2026-09-15,2026-10-05,Flexible / sourcing staging,20,45,900,,0,,Use hosted stay where available; $45/night is fallback estimate only

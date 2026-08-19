@@ -1,0 +1,5 @@
+date,category,description,amount,currency,usd_conversion,payment_method,notes
+2026-08-20,Travel,LAX to Athens ticket value,755.19,USD,755.19,"75,519 points gross / 24,500 returned","$0 cash shown; Amex 35% airline bonus reported by user"
+2026-08-26,Travel,Athens to Budapest ticket,219.84,USD,219.84,Card,"Accepted booking total"
+2026-08-31,Travel,Budapest to Athens ticket,219.84,USD,219.84,Card,"Accepted booking total"
+2026-09-01,Travel,Athens to Chiang Mai ticket value,465.80,USD,465.80,"23,290 points; Merrill Lynch 0.2 multiplier","$0 cash shown; value from confirmation"
