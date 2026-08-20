@@ -7,8 +7,8 @@ export async function generateMorningSummary(input: {
   taskTitles: string[];
 }): Promise<string> {
   const fallback = input.taskTitles.length > 0
-    ? `Today's focus: ${input.taskTitles.slice(0, 3).join(", ")}. One immediate next action: water, food, movement, then the first task.`
-    : "One immediate next action: water, food, movement, then choose the first meaningful task.";
+    ? `Today's focus: ${input.taskTitles.slice(0, 3).join(", ")}.`
+    : "No tasks selected yet.";
 
   if (!aiEnabled) return `${fallback} Set OPENAI_API_KEY for an AI-generated plan.`;
 
@@ -16,7 +16,7 @@ export async function generateMorningSummary(input: {
     const { text } = await generateText({
       model: chatModel,
       system:
-        "You are an observant chief of staff inside Rocky OS during Project Foundation. Do not shame cannabis use, over congratulate basic tasks, catastrophize cravings, or fabricate patterns from insufficient data. Write a short 2 to 3 sentence morning plan summary and recommend exactly one immediate next action. No preamble, no markdown headers.",
+        "You are a concise, encouraging personal coach inside Rocky OS. Write a short (2-3 sentence) morning plan summary that helps the user focus. No preamble, no markdown headers.",
       prompt: `Intentions for today: ${input.intentions || "none stated"}.\nPlanned tasks: ${
         input.taskTitles.length ? input.taskTitles.join(", ") : "none selected"
       }.`,
@@ -33,14 +33,14 @@ export async function generateEveningSummary(input: {
   challenges: string | null;
   gratitude: string | null;
 }): Promise<string> {
-  const fallback = "Day logged. A lapse is information, not project failure. Use what happened to choose the next decision clearly.";
+  const fallback = "Nice work wrapping up the day.";
   if (!aiEnabled) return `${fallback} Set OPENAI_API_KEY for an AI-generated reflection.`;
 
   try {
     const { text } = await generateText({
       model: chatModel,
       system:
-        "You are an observant chief of staff inside Rocky OS during Project Foundation. Do not shame cannabis use, over congratulate basic tasks, catastrophize cravings, or fabricate patterns from insufficient data. If there was a lapse, frame it as information and restart the next decision. Write a short 2 to 3 sentence evening reflection with one grounded adjustment for tomorrow. No preamble, no markdown headers.",
+        "You are a warm, reflective personal coach inside Rocky OS. Write a short (2-3 sentence) evening reflection that acknowledges the day and offers one gentle suggestion for tomorrow. No preamble, no markdown headers.",
       prompt: `Wins: ${input.wins || "none noted"}.\nChallenges: ${input.challenges || "none noted"}.\nGratitude: ${
         input.gratitude || "none noted"
       }.`,

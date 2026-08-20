@@ -6,10 +6,6 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import vendorLeads from "@/lib/project-foundation/vendor-leads.json";
 
-const RESET_PROJECT_EXTERNAL_SOURCE = "project_foundation";
-const RESET_PROJECT_EXTERNAL_ID = "cannabis-reset-la-amsterdam-athens";
-const FINAL_SESSION_NOTE_TITLE = "FINAL CANNABIS SESSION";
-
 const sourceLeadSchema = z.object({
   sourceKey: z.string().trim().min(1).optional(),
   countryGroup: z.string(),
@@ -113,85 +109,4 @@ export async function updateFoundationVendorLead(input: z.input<typeof updateLea
     data: { status: data.status, priority: data.priority ?? null, meetingDate: data.meetingDate || null, followUp: data.followUp || null },
   });
   revalidatePath("/project-foundation");
-}
-
-const finalSessionSchema = z.object({
-  sessionAt: z.string().min(1),
-  location: z.string().trim().min(1).max(120),
-  feelings: z.string().trim().min(1).max(1200),
-  amount: z.string().trim().min(1).max(240),
-  reason: z.string().trim().min(1).max(1200),
-});
-
-export async function recordFinalCannabisSession(input: z.input<typeof finalSessionSchema>) {
-  const user = await requireUser();
-  const data = finalSessionSchema.parse(input);
-  const sessionAt = new Date(data.sessionAt);
-
-  if (Number.isNaN(sessionAt.getTime())) {
-    throw new Error("Enter a valid date and time.");
-  }
-
-  const project = await db.project.findUnique({
-    where: {
-      userId_externalSource_externalId: {
-        userId: user.id,
-        externalSource: RESET_PROJECT_EXTERNAL_SOURCE,
-        externalId: RESET_PROJECT_EXTERNAL_ID,
-      },
-    },
-  });
-
-  if (!project) {
-    throw new Error("Open Project Foundation once before recording the final session.");
-  }
-
-  const body = [
-    `Session recorded at: ${sessionAt.toISOString()}`,
-    `Location: ${data.location}`,
-    `Feelings: ${data.feelings}`,
-    `Approximate amount consumed: ${data.amount}`,
-    `Why this is final: ${data.reason}`,
-    "",
-    "Cannabis Free Day 0 starts here.",
-  ].join("\n");
-
-  const existing = await db.note.findFirst({
-    where: {
-      userId: user.id,
-      entityType: "PROJECT",
-      entityId: project.id,
-      title: FINAL_SESSION_NOTE_TITLE,
-    },
-  });
-
-  const note = existing
-    ? await db.note.update({ where: { id: existing.id }, data: { body } })
-    : await db.note.create({
-        data: {
-          userId: user.id,
-          entityType: "PROJECT",
-          entityId: project.id,
-          title: FINAL_SESSION_NOTE_TITLE,
-          body,
-        },
-      });
-
-  await db.milestone.updateMany({
-    where: { userId: user.id, projectId: project.id, title: FINAL_SESSION_NOTE_TITLE },
-    data: { status: "DONE" },
-  });
-
-  await db.task.updateMany({
-    where: {
-      userId: user.id,
-      projectId: project.id,
-      externalSource: RESET_PROJECT_EXTERNAL_SOURCE,
-      externalId: "cannabis-reset-final-session",
-    },
-    data: { status: "DONE", completedAt: new Date() },
-  });
-
-  revalidatePath("/project-foundation");
-  return note;
 }

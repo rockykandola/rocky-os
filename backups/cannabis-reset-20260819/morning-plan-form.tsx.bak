@@ -60,19 +60,11 @@ export function MorningPlanForm({
           </>
         ) : (
           <>
-            <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Project Foundation reset prompts</p>
-              <p className="mt-1">
-                How did I sleep? How do I feel physically and emotionally? What is my craving level from 0 to 10?
-                What am I actually craving: weed, relief, stimulation, sleep, comfort, connection, escape, or habit?
-                What would make today meaningful even if I feel uncomfortable? What are my three priorities today?
-              </p>
-            </div>
             <Textarea
               value={intentions}
               onChange={(e) => setIntentions(e.target.value)}
-              placeholder="Answer the reset prompts and name the one immediate next action."
-              rows={7}
+              placeholder="What's your intention for today?"
+              rows={3}
             />
             <div>
               <p className="mb-2 text-xs font-medium text-muted-foreground">Pick what you&apos;ll work on</p>

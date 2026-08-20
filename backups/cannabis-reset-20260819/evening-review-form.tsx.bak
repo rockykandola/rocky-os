@@ -69,24 +69,16 @@ export function EveningReviewForm({ plan }: { plan: DailyPlan | null }) {
           </>
         ) : (
           <>
-            <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
-              <p className="font-medium text-foreground">Project Foundation evening reset</p>
-              <p className="mt-1">
-                Did I use cannabis today? If yes, record circumstances without shame. If no, note the current streak.
-                Strongest craving 0 to 10, trigger, what I did instead, strongest emotion, what made me feel alive,
-                what made me want to escape, what I am proud of, and what I want to do differently tomorrow.
-              </p>
-            </div>
             <div className="flex flex-col gap-2">
-              <Label>What made me feel alive or proud today?</Label>
+              <Label>What went well today?</Label>
               <Textarea value={wins} onChange={(e) => setWins(e.target.value)} rows={2} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Cannabis use, cravings, triggers, escape impulse, and difficult moments</Label>
-              <Textarea value={challenges} onChange={(e) => setChallenges(e.target.value)} rows={4} />
+              <Label>What was challenging?</Label>
+              <Textarea value={challenges} onChange={(e) => setChallenges(e.target.value)} rows={2} />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>What helped, and what do I want to do differently tomorrow?</Label>
+              <Label>What are you grateful for?</Label>
               <Textarea value={gratitude} onChange={(e) => setGratitude(e.target.value)} rows={2} />
             </div>
             <div className="flex justify-end gap-2">
