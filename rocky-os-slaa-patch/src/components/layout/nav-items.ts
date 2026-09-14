@@ -12,7 +12,6 @@ import {
   Mail,
   Compass,
   Heart,
-  CircleDot,
 } from "lucide-react";
 
 export type NavItem = {
@@ -30,7 +29,6 @@ export const navItems: NavItem[] = [
   { title: "Journal", href: "/journal", icon: BookOpen },
   { title: "Habits", href: "/habits", icon: Sparkles },
   { title: "S.L.A.A. H.O.W.", href: "/slaa", icon: Heart },
-  { title: "Recovery OS", href: "/recovery", icon: CircleDot },
   { title: "Contacts", href: "/contacts", icon: Users },
   { title: "Gmail", href: "/gmail", icon: Mail },
   { title: "Project Foundation", href: "/project-foundation", icon: Compass },
