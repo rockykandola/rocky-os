@@ -1,0 +1,28 @@
+Project Foundation trip bookings folder guide
+
+Everything is grouped by trip leg or location.
+
+Use the folder names first:
+
+LA to Athens Aug 21
+Athens to Budapest Aug 26
+Budapest to Athens Aug 31
+Athens to Chiang Mai Sep 1
+Chiang Mai Sep 2 to Sep 20
+Chiang Mai to Hanoi Sep 20
+Hanoi Sep 20 to Sep 23
+Hanoi to Siem Reap Sep 25
+Siem Reap to Bangkok Sep 30
+Bangkok to Delhi Oct 1
+General Travel Docs and Insurance
+Original Archive
+
+Inside each trip folder:
+
+Flights contains flight confirmations, itineraries, and booking screenshots.
+Accommodations contains hotel, Airbnb, apartment, and voucher files.
+Legal and Visas contains eVisas, visa support documents, arrival card records, and passport related screenshots.
+Receipts and Insurance contains payment records, travel insurance, and invoice documents.
+Other contains useful travel items that do not fit the above categories.
+
+Original Archive contains the original zip backup.
