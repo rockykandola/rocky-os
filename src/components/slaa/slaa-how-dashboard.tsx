@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 const PROGRAM_START = "2026-09-14";
 const TOTAL_DAYS = 37;
-const STORAGE_KEY = "rocky-os-slaa-how-v2";
+const STORAGE_KEY = "rocky-os-slaa-how-v3";
 
 const characteristics = [
   "Sexual or emotional attachment before real knowledge of the person.",
@@ -296,8 +296,23 @@ function defaultQuestion(day: number) {
   return dayTemplates[day - 1]?.assignment ?? "Paste today’s question from Mr. Jude here.";
 }
 
+const day4AnorexiaReflection = {
+  question:
+    "4. Read the S.L.A.A. pamphlet on anorexia, Anorexia: Sexual, Social, Emotional, as it relates to sexual, social and emotional anorexia. Do you relate to any of these behaviors? Do some writing and discuss.",
+  answer:
+    "Day 4 working notes from Sept 18 discussion\n\nI do not relate to this as much as a primary pattern. My main line is connection and communication with people. I am an open book. I share my heart. I do not want to become someone who avoids love, emotion, honesty, or closeness.\n\nWhere I do relate is that when I am very hurt, I can lose access to healthy love and healthy emotional connection. I do not usually avoid love because I do not want it. I avoid or back away when I am wounded, activated, scared, or unsure whether the source of love is safe. Sometimes I am not attracted, or I have reservations about the person or the source of the love, and I back away. I think that can be healthy discernment when I am protecting my recovery and not abandoning myself.\n\nThe dark places for me are anger, suicide thoughts, and deep unworthiness. Rejection after diving in, losing someone I love or care about, betrayal, and seeing strings attached to love can take me very dark. Betrayal especially feels like my biggest scary moment. My body reacts like I am in danger. I feel like the world is against me, like everyone hates me and wants to kill me, like there is no safety anywhere. I cry. I shake. It hurts so so so so bad. In those moments I believe I will never be enough and no one will ever choose me.\n\nWhen I back away in those moments, my body is activated. I am either on high guard or I stop caring what happens to me and get reckless. That is where I need recovery. It is not that I want to be avoidant. It is that betrayal and rejection can make my nervous system feel unsafe and out of control.\n\nI am scared of becoming avoidant because avoidant people have hurt me. To me, avoidants can seem to lie, manipulate, disappear, withhold, and hurt people. I never want to become that. I do not want to use distance, silence, or emotional withdrawal as punishment or control.\n\nHealthy connection in pain looks like support groups, counselor, retreats, yoga, and calling a friend when it is at its worst. I am still learning what it feels like to stay emotionally available when I am hurt. That might mean slowing down, telling the truth, asking for support, and not running to unsafe places for relief.\n\nThe honest distinction for me is this: I do not strongly identify with sexual, social, or emotional anorexia as my main pattern, because I am deeply wired for connection. But I do relate to moments where pain, betrayal, or rejection can make me pull away from healthy connection, go on high guard, become reckless, or believe I am unworthy. That is the part I want to recover.",
+  patterns:
+    "Patterns noticed\n\nConnection and communication are core values, not optional extras.\n\nThe risk is not emotional coldness as a baseline. The risk is what happens after rejection, betrayal, or love with strings attached.\n\nBetrayal creates a threat response: high guard, shaking, crying, danger feelings, and beliefs that there is no safety.\n\nThe most dangerous belief is: I will never be enough and no one will ever choose me.\n\nBacking away can be healthy when it comes from discernment about attraction, safety, values, or the source of love. It becomes risky when it comes from panic, self abandonment, revenge, despair, or reckless collapse.\n\nRecovery question: when I am hurt, do I stop wanting love, or do I stop trusting love?",
+  sourceNotes:
+    "Source notes\n\nAnorexia in this pamphlet is useful as a scan for avoidance of sexual, social, and emotional nourishment. My strongest identification is not with default avoidance. My identification is with losing access to safe nourishment when betrayal, rejection, or fear takes over.",
+  judeNotes:
+    "Notes or questions for Mr. Jude\n\nI want to discuss the difference between healthy discernment and anorexic avoidance.\n\nI want to talk about betrayal as a danger response in my body, not just a sad feeling.\n\nI need help learning how to stay emotionally available while hurt without becoming reckless, desperate, or unsafe.\n\nI am afraid of becoming avoidant because avoidant people have hurt me. I want to be careful that I do not confuse slowing down with withholding love.\n\nQuestion: what does sober, emotionally available space look like when I am activated?",
+  gratitude:
+    "Sane action\n\nIf betrayal or rejection hits today, I will treat it as a danger signal in my nervous system, not as proof that I am worthless. I will reach for support before I isolate, spiral, or get reckless.",
+};
+
 function newDay(day: number): DayState {
-  return {
+  const baseDay = {
     question: defaultQuestion(day),
     answer: "",
     sponsorCall: false,
@@ -318,14 +333,18 @@ function newDay(day: number): DayState {
     sourceNotes: "",
     gratitude: "",
   };
+
+  return day === 4 ? { ...baseDay, ...day4AnorexiaReflection } : baseDay;
 }
 
 const initialState: ProgramState = {
-  days: {},
+  days: {
+    4: newDay(4),
+  },
   bottomLines: candidateBottomLines.join("\n"),
   middleLines: candidateMiddleLines.join("\n"),
   topLines: candidateTopLines.join("\n"),
-  selectedSourceTitle: literatureSources[0].title,
+  selectedSourceTitle: "Anorexia: Sexual, Social, Emotional",
 };
 
 function programDayToday() {
