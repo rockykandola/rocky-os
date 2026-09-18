@@ -43,22 +43,18 @@ const programTracks = [
       {
         title: "AA Big Book",
         role: "Core recovery text, How It Works, spiritual experience, and working with others.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/AA/Big Book & 12 x 12/AA-Big-Book-4th-edition.pdf",
       },
       {
         title: "AA 12 Steps and 12 Traditions",
         role: "Step study, tradition study, and deeper daily inventory.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/AA/Big Book & 12 x 12/AA-12-Steps-12-Traditions.pdf",
       },
       {
         title: "Attendance Template",
         role: "Meeting record and accountability proof.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/AA/Attendance Template/AA-Attendance-Sheet.pdf",
       },
       {
         title: "Emotional Sobriety Round Up",
         role: "Audio reference for emotional sobriety and right sized thinking.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/AA/Emotional Sobriety/Emotional Sobriety Round Up 2025 Chiang Mai.m4a",
       },
     ],
     sponsorPrompt: "What truth am I avoiding today, and what sane action would move me back toward sobriety?",
@@ -80,17 +76,14 @@ const programTracks = [
       {
         title: "NA Step Working Guide",
         role: "Primary question source for written step work.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/NA/na-step-working-guide.pdf",
       },
       {
         title: "NA Step Working Guide copy",
         role: "Second local copy for backup or alternate formatting.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/NA/na_swg_12.pdf",
       },
       {
         title: "Recovery Dharma",
         role: "Meditation, inquiry, and craving observation support.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky 12 Step/AA/Recovery Dharma/Recovery Dharma 2.0.pdf",
       },
     ],
     sponsorPrompt: "What am I trying to manage alone that needs fellowship, honesty, or surrender?",
@@ -112,12 +105,10 @@ const programTracks = [
       {
         title: "Fitness Log",
         role: "Local Project Foundation tracker for activity, duration, intensity, knee discomfort, and notes.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky OS/Project Foundation Rock/health/fitness.csv",
       },
       {
         title: "Clarity Log",
         role: "Sleep, energy, mood, clarity, cravings, triggers, and substance free tracking.",
-        path: "/Users/VikrumKandola/Desktop/Personal/Rocky OS/Project Foundation Rock/health/clarity-log.csv",
       },
     ],
     sponsorPrompt: "What is the next honest health action that is small enough to do today and meaningful enough to count?",
@@ -125,6 +116,167 @@ const programTracks = [
 ] as const;
 
 type TrackId = (typeof programTracks)[number]["id"];
+
+const workbookModules: Record<
+  TrackId,
+  {
+    id: string;
+    title: string;
+    purpose: string;
+    prompts: string[];
+  }[]
+> = {
+  aa: [
+    {
+      id: "aa-sober-day",
+      title: "Sober day plan",
+      purpose: "Make the day smaller than the disease and specific enough to follow.",
+      prompts: [
+        "What is the one situation today where alcohol, ego, anger, self pity, or isolation could get a foothold?",
+        "What meeting, call, prayer, reading, or service action am I doing before the day gets loose?",
+        "What am I not negotiating with today?",
+      ],
+    },
+    {
+      id: "aa-step-one",
+      title: "Step One reality check",
+      purpose: "Name powerlessness and unmanageability in plain language, without drama or denial.",
+      prompts: [
+        "Where has self will failed me recently?",
+        "What did I lose control of once I started trying to manage my feelings my way?",
+        "What would acceptance look like today if I stopped pretending I can outthink this alone?",
+      ],
+    },
+    {
+      id: "aa-inventory",
+      title: "Quick inventory",
+      purpose: "Catch resentments, fear, dishonesty, and selfishness while they are still small.",
+      prompts: [
+        "Who or what am I resentful toward today, and what do I think they threaten?",
+        "What fear is underneath my reaction?",
+        "Where do I owe honesty, humility, an apology, or restraint?",
+      ],
+    },
+    {
+      id: "aa-emotional-sobriety",
+      title: "Emotional sobriety",
+      purpose: "Practice being right sized instead of controlled by approval, rejection, or control.",
+      prompts: [
+        "Where am I depending on another person, result, or mood to feel okay?",
+        "What can I do today that is useful whether or not I feel good?",
+        "What would mature, sober Rocky do in the next hour?",
+      ],
+    },
+  ],
+  na: [
+    {
+      id: "na-clean-day",
+      title: "Clean day plan",
+      purpose: "Protect today from cravings, reservations, isolation, and vague promises.",
+      prompts: [
+        "What is the strongest reservation, craving, or excuse active today?",
+        "What person am I contacting before I isolate?",
+        "What place, app, person, or routine do I need to avoid today?",
+      ],
+    },
+    {
+      id: "na-step-one",
+      title: "NA Step One work",
+      purpose: "See the pattern clearly enough that recovery becomes the sane option.",
+      prompts: [
+        "What does powerlessness look like in my actual behavior, not my theory?",
+        "How has using, substituting, hiding, or obsessing made life unmanageable?",
+        "What consequence do I need to remember before my mind edits the truth?",
+      ],
+    },
+    {
+      id: "na-triggers",
+      title: "Trigger map",
+      purpose: "Convert triggers into a concrete interruption plan.",
+      prompts: [
+        "What feeling usually comes right before I want to check out?",
+        "What is my first visible warning sign?",
+        "What are the first three interruption actions I will take?",
+      ],
+    },
+    {
+      id: "na-fellowship",
+      title: "Fellowship and service",
+      purpose: "Move from isolation into connection before the disease gets private.",
+      prompts: [
+        "Who can I be honest with today?",
+        "What can I share in a meeting without performing or hiding?",
+        "What simple service action gets me out of myself?",
+      ],
+    },
+  ],
+  weight: [
+    {
+      id: "weight-food-plan",
+      title: "Food plan",
+      purpose: "Make fat loss practical by deciding before cravings decide for me.",
+      prompts: [
+        "What am I eating for the next meal?",
+        "What protein anchor am I using today?",
+        "What food choice is most likely to drift, and what is the replacement plan?",
+      ],
+    },
+    {
+      id: "weight-craving-plan",
+      title: "Craving interruption",
+      purpose: "Treat food cravings like a signal, not an instruction.",
+      prompts: [
+        "What am I actually feeling when I want to eat off plan?",
+        "Am I hungry, tired, lonely, bored, anxious, angry, or avoiding something?",
+        "What 10 minute action comes before any decision to eat?",
+      ],
+    },
+    {
+      id: "weight-training",
+      title: "Knee friendly movement",
+      purpose: "Build consistency without turning pain into an excuse or a setback.",
+      prompts: [
+        "What movement can I do today without aggravating my knee?",
+        "What is the minimum version that still counts?",
+        "What did my body tell me after movement?",
+      ],
+    },
+    {
+      id: "weight-weekly-review",
+      title: "Weekly trend review",
+      purpose: "Track the trend instead of letting one weigh in run the day.",
+      prompts: [
+        "What is the actual trend this week?",
+        "What worked?",
+        "What one adjustment would make next week easier to repeat?",
+      ],
+    },
+  ],
+};
+
+const operatingPlans: Record<TrackId, string[]> = {
+  aa: [
+    "Meeting or honest recovery contact before isolation gets comfortable.",
+    "Read or write one small piece of step work.",
+    "Tell the truth faster than pride wants to.",
+    "Do one act of service without needing credit.",
+    "End the day with a quick inventory and repair plan.",
+  ],
+  na: [
+    "Name the craving, reservation, or substitute behavior without dressing it up.",
+    "Contact one recovering person before acting on impulse.",
+    "Avoid the highest risk place, person, app, or routine today.",
+    "Use the body: walk, shower, eat, sleep, or sit in a meeting.",
+    "Write the clean version of the truth before the disease edits it.",
+  ],
+  weight: [
+    "Plan the next meal before hunger gets loud.",
+    "Protein, water, steps, and sleep are the non dramatic foundation.",
+    "Use knee friendly movement and stop before pain becomes punishment.",
+    "Log honestly. No moral trial, no fantasy accounting.",
+    "Review the weekly trend, not just the emotional weigh in.",
+  ],
+};
 
 type TrackState = {
   active: boolean;
@@ -158,6 +310,7 @@ type RecoveryState = {
   selectedTrack: TrackId;
   tracks: Record<TrackId, TrackState>;
   health: HealthState;
+  workbookAnswers: Record<string, string>;
   morningIntention: string;
   eveningReview: string;
 };
@@ -208,6 +361,7 @@ function createInitialState(): RecoveryState {
       cravings: "",
       win: "",
     },
+    workbookAnswers: {},
     morningIntention: "",
     eveningReview: "",
   };
@@ -228,6 +382,7 @@ function mergeState(raw: string | null): RecoveryState {
         weight: { ...initial.tracks.weight, ...parsed.tracks?.weight },
       },
       health: { ...initial.health, ...parsed.health },
+      workbookAnswers: { ...initial.workbookAnswers, ...parsed.workbookAnswers },
     };
   } catch {
     return initial;
@@ -273,6 +428,18 @@ export function RecoveryOsDashboard() {
   const dailySummary = useMemo(() => {
     const trackLines = programTracks.map((track) => {
       const item = state.tracks[track.id];
+      const workbookLines = workbookModules[track.id]
+        .map((module) => {
+          const answers = module.prompts
+            .map((prompt, index) => {
+              const key = `${track.id}:${module.id}:${index}`;
+              return `${prompt}\n${state.workbookAnswers[key] || "Not written yet."}`;
+            })
+            .join("\n");
+          return `${module.title}\n${answers}`;
+        })
+        .join("\n\n");
+
       return [
         `${track.title}: ${trackCompletion(item, track.id)}%`,
         `Clean or sober action: ${item.sober ? "yes" : "open"}`,
@@ -280,6 +447,9 @@ export function RecoveryOsDashboard() {
         `Contact: ${item.contactName || "not logged"}`,
         `Reading or step work: ${item.stepOrReading || "not logged"}`,
         `Notes: ${item.notes || "none"}`,
+        "",
+        "Workbook:",
+        workbookLines,
       ].join("\n");
     });
 
@@ -314,6 +484,16 @@ export function RecoveryOsDashboard() {
       tracks: {
         ...prev.tracks,
         [id]: { ...prev.tracks[id], ...patch },
+      },
+    }));
+  }
+
+  function updateWorkbookAnswer(key: string, value: string) {
+    setState((prev) => ({
+      ...prev,
+      workbookAnswers: {
+        ...prev.workbookAnswers,
+        [key]: value,
       },
     }));
   }
@@ -411,18 +591,62 @@ export function RecoveryOsDashboard() {
 
           <section className="rounded-lg border bg-background p-5">
             <div className="mb-4 flex items-center gap-2">
-              <Library className="h-4 w-4 text-primary" />
-              <h2 className="text-lg font-semibold">{selectedTrack.title} source shelf</h2>
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold">{selectedTrack.title} operating plan</h2>
             </div>
-            <div className="grid gap-3">
-              {selectedTrack.literature.map((source) => (
-                <div key={source.title} className="rounded-lg border p-3">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-primary" />
-                    <h3 className="text-sm font-semibold">{source.title}</h3>
+            <div className="grid gap-2">
+              {operatingPlans[selectedTrack.id].map((item) => (
+                <div key={item} className="flex items-center gap-2 rounded-lg bg-muted/50 p-3 text-sm">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-primary" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-lg border bg-background p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Library className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold">In-app workbook</h2>
+            </div>
+            <div className="grid gap-4">
+              {workbookModules[selectedTrack.id].map((module) => (
+                <div key={module.id} className="rounded-lg border p-4">
+                  <div className="mb-3">
+                    <h3 className="text-base font-semibold">{module.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{module.purpose}</p>
                   </div>
-                  <p className="mt-2 text-sm text-muted-foreground">{source.role}</p>
-                  <p className="mt-2 break-words rounded-md bg-muted/50 p-2 text-xs">{source.path}</p>
+                  <div className="grid gap-3">
+                    {module.prompts.map((prompt, index) => {
+                      const key = `${selectedTrack.id}:${module.id}:${index}`;
+                      return (
+                        <label key={key} className="grid gap-2">
+                          <span className="text-sm font-medium">{prompt}</span>
+                          <Textarea
+                            value={state.workbookAnswers[key] ?? ""}
+                            onChange={(event) => updateWorkbookAnswer(key, event.target.value)}
+                            placeholder="Write the honest answer here."
+                            className="min-h-24"
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-lg border bg-background p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-semibold">Program references used</h2>
+            </div>
+            <div className="grid gap-2">
+              {selectedTrack.literature.map((source) => (
+                <div key={source.title} className="rounded-lg bg-muted/50 p-3">
+                  <h3 className="text-sm font-semibold">{source.title}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{source.role}</p>
                 </div>
               ))}
             </div>
